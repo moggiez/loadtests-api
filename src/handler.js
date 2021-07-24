@@ -26,6 +26,8 @@ class Handler {
         await this.get(organisationId, loadtestId, response);
       } else if (request.httpMethod == "POST") {
         await this.post(organisationId, payload, response);
+      } else if (request.httpMethod == "PUT") {
+        await this.put(organisationId, loadtestId, payload, response);
       } else if (request.httpMethod == "DELETE") {
         await this.delete(organisationId, loadtestId, response);
       } else {
@@ -68,6 +70,17 @@ class Handler {
       response(200, data);
     } catch (err) {
       console.log(err);
+      response(500, err);
+    }
+  };
+
+  put = async (organisationId, loadtestId, payload, response) => {
+    try {
+      const record = { ...payload };
+      const data = await this.table.update(organisationId, loadtestId, record);
+
+      response(200, data);
+    } catch (err) {
       response(500, err);
     }
   };
