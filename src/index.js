@@ -1,25 +1,57 @@
 "use strict";
 
 const AWS = require("aws-sdk");
-const db = require("moggies-db");
+const db = require("@moggiez/moggies-db");
 
-const helpers = require("moggies-lambda-helpers");
-const auth = require("moggies-auth");
-const config = require("./config");
+const helpers = require("@moggiez/moggies-lambda-helpers");
+const auth = require("@moggiez/moggies-auth");
 const { Handler } = require("./handler");
+const { InternalHandler } = require("./internalHandler");
 
-exports.handler = function (event, context, callback) {
+const tableConfig = {
+  tableName: "loadtests",
+  hashKey: "OrganisationId",
+  sortKey: "LoadtestId",
+  indexes: {
+    PlaybookLoadtestIndex: {
+      hashKey: "PlaybookId",
+      sortKey: "LoadtestId",
+    },
+    UsersLoadtestsIndex: {
+      hashKey: "UserId",
+      sortKey: "LoadtestId",
+    },
+    CreatedAtHourIndex: {
+      hashKey: "CreatedAtHour",
+      sortKey: "MetricsSavedDate",
+    },
+  },
+};
+
+const DEBUG = true;
+
+exports.handler = async function (event, context, callback) {
+  const table = new db.Table({ config: tableConfig, AWS: AWS });
+
+  if ("isInternal" in event && event.isInternal) {
+    if (DEBUG) {
+      return event;
+    }
+
+    const internalHandler = new InternalHandler(table);
+    return await internalHandler.handle(event);
+  }
+
   const response = helpers.getResponseFn(callback);
 
-  if (config.DEBUG) {
-    response(200, event, config.headers);
+  if (DEBUG) {
+    response(200, event);
   }
 
   const user = auth.getUserFromEvent(event);
   const request = helpers.getRequestFromEvent(event);
   request.user = user;
 
-  const table = new db.Table({ config: db.tableConfigs.loadtests, AWS: AWS });
   const handler = new Handler(table);
-  handler.handle(request, response);
+  await handler.handle(request, response);
 };

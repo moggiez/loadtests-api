@@ -43,9 +43,12 @@ class Handler {
     let data = null;
     try {
       if (loadtestId) {
-        data = await this.table.get(organisationId, loadtestId);
+        data = await this.table.get({
+          hashKey: organisationId,
+          sortKey: loadtestId,
+        });
       } else {
-        data = await this.table.getByPartitionKey(organisationId);
+        data = await this.table.query({ hashKey: organisationId });
       }
       const responseBody =
         "Items" in data
@@ -65,7 +68,11 @@ class Handler {
     payload["MetricsSavedDate"] = "null";
     const loadtestId = uuid.v4();
     try {
-      const data = await this.table.create(organisationId, loadtestId, payload);
+      const data = await this.table.create({
+        hashKey: organisationId,
+        sortKey: loadtestId,
+        record: payload,
+      });
       data["LoadtestId"] = loadtestId;
       response(200, data);
     } catch (err) {
@@ -77,7 +84,11 @@ class Handler {
   put = async (organisationId, loadtestId, payload, response) => {
     try {
       const record = { ...payload };
-      const data = await this.table.update(organisationId, loadtestId, record);
+      const data = await this.table.update({
+        hashKey: organisationId,
+        sortKey: loadtestId,
+        updatedFields: record,
+      });
 
       response(200, data);
     } catch (err) {
@@ -87,7 +98,10 @@ class Handler {
 
   delete = async (organisationId, loadtestId, response) => {
     try {
-      const data = await this.table.delete(organisationId, loadtestId);
+      const data = await this.table.delete({
+        hashKey: organisationId,
+        sortKey: loadtestId,
+      });
       response(200, data);
     } catch (err) {
       response(500, err);
