@@ -30,6 +30,11 @@ class InternalHandler {
         sortKey: event.parameters.loadtestId,
         updatedFields: event.parameters.updatedFields,
       });
+    } else if (event.action === "getLoadtest") {
+      return await this.table.get({
+        hashKey: event.parameters.organisationId,
+        sortKey: event.parameters.loadtestId,
+      });
     } else {
       throw Error("Not supported action.");
     }
