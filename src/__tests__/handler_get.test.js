@@ -2,8 +2,8 @@ const uuid = require("uuid");
 const { Handler } = require("../handler");
 const { mockTable, getPromiseWithReturnValue } = require("./helpers");
 
-const { Table } = require("moggies-db");
-jest.mock("moggies-db");
+const { Table } = require("@moggiez/moggies-db");
+jest.mock("@moggiez/moggies-db");
 
 const response = jest.fn();
 
@@ -21,7 +21,10 @@ describe("Handler.get", () => {
     const loadtestId = uuid.v4();
     await handler.get(orgId, loadtestId, response);
 
-    expect(table.get).toHaveBeenCalledWith(orgId, loadtestId);
+    expect(table.get).toHaveBeenCalledWith({
+      hashKey: orgId,
+      sortKey: loadtestId,
+    });
     expect(response).toHaveBeenCalledWith(500, expect.any(Object));
   });
 
@@ -34,7 +37,10 @@ describe("Handler.get", () => {
     const loadtestId = uuid.v4();
     await handler.get(orgId, loadtestId, response);
 
-    expect(table.get).toHaveBeenCalledWith(orgId, loadtestId);
+    expect(table.get).toHaveBeenCalledWith({
+      hashKey: orgId,
+      sortKey: loadtestId,
+    });
     expect(response).toHaveBeenCalledWith(500, expect.any(Object));
   });
 
@@ -48,67 +54,62 @@ describe("Handler.get", () => {
     const loadtestId = uuid.v4();
     await handler.get(orgId, loadtestId, response);
 
-    expect(table.get).toHaveBeenCalledWith(orgId, loadtestId);
+    expect(table.get).toHaveBeenCalledWith({
+      hashKey: orgId,
+      sortKey: loadtestId,
+    });
     expect(response).toHaveBeenCalledWith(200, { data: dbItems });
   });
 
   it("calls dynamo get when hashKey passed and rangeKey is null", async () => {
     const dbItems = [];
     const table = mockTable();
-    table.getByPartitionKey.mockReturnValue(
-      getPromiseWithReturnValue({ Items: dbItems })
-    );
+    table.query.mockReturnValue(getPromiseWithReturnValue({ Items: dbItems }));
     const handler = new Handler(table);
 
     const orgId = uuid.v4();
     await handler.get(orgId, null, response);
 
-    expect(table.getByPartitionKey).toHaveBeenCalledWith(orgId);
+    expect(table.query).toHaveBeenCalledWith({ hashKey: orgId });
     expect(response).toHaveBeenCalledWith(200, { data: dbItems });
   });
 
   it("calls dynamo get when hashKey passed and rangeKey is undefined", async () => {
     const dbItems = [];
     const table = mockTable();
-    table.getByPartitionKey.mockReturnValue(
-      getPromiseWithReturnValue({ Items: dbItems })
-    );
+    table.query.mockReturnValue(getPromiseWithReturnValue({ Items: dbItems }));
     const handler = new Handler(table);
 
     const orgId = uuid.v4();
     await handler.get(orgId, undefined, response);
 
-    expect(table.getByPartitionKey).toHaveBeenCalledWith(orgId);
+    expect(table.query).toHaveBeenCalledWith({ hashKey: orgId });
     expect(response).toHaveBeenCalledWith(200, { data: dbItems });
   });
 
   it("returns 200 with items", async () => {
     const dbItems = [];
     const table = mockTable();
-    table.getByPartitionKey.mockReturnValue(
-      getPromiseWithReturnValue({ Items: dbItems })
-    );
+    table.query.mockReturnValue(getPromiseWithReturnValue({ Items: dbItems }));
     const handler = new Handler(table);
 
     const orgId = uuid.v4();
     await handler.get(orgId, undefined, response);
 
-    expect(table.getByPartitionKey).toHaveBeenCalledWith(orgId);
+    expect(table.query).toHaveBeenCalledWith({ hashKey: orgId });
     expect(response).toHaveBeenCalledWith(200, { data: dbItems });
   });
 
   it("returns 200 with a single item", async () => {
     const dbItem = {};
     const table = mockTable();
-    table.getByPartitionKey.mockReturnValue(
-      getPromiseWithReturnValue({ Item: dbItem })
-    );
+    table.query.mockReturnValue(getPromiseWithReturnValue({ Item: dbItem }));
     const handler = new Handler(table);
 
     const orgId = uuid.v4();
     await handler.get(orgId, undefined, response);
 
-    expect(table.getByPartitionKey).toHaveBeenCalledWith(orgId);
+    expect(table.query).toHaveBeenCalledWith({ hashKey: orgId });
     expect(response).toHaveBeenCalledWith(200, dbItem);
   });
 });

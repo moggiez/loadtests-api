@@ -6,8 +6,8 @@ const {
   getPromiseWithReject,
 } = require("./helpers");
 
-const { Table } = require("moggies-db");
-jest.mock("moggies-db");
+const { Table } = require("@moggiez/moggies-db");
+jest.mock("@moggiez/moggies-db");
 
 const response = jest.fn();
 
@@ -28,9 +28,13 @@ describe("Handler.post", () => {
     const handler = new Handler(table);
     await handler.post(orgId, payload, response);
 
-    expect(table.create).toHaveBeenCalledWith(orgId, expect.any(String), {
-      CreatedAtHour: expectedHour,
-      MetricsSavedDate: "null",
+    expect(table.create).toHaveBeenCalledWith({
+      hashKey: orgId,
+      sortKey: expect.any(String),
+      record: {
+        CreatedAtHour: expectedHour,
+        MetricsSavedDate: "null",
+      },
     });
     expect(response).toHaveBeenCalledWith(200, {
       LoadtestId: expect.any(String),
@@ -50,9 +54,13 @@ describe("Handler.post", () => {
     const handler = new Handler(table);
     await handler.post(orgId, payload, response);
 
-    expect(table.create).toHaveBeenCalledWith(orgId, expect.any(String), {
-      CreatedAtHour: expectedHour,
-      MetricsSavedDate: "null",
+    expect(table.create).toHaveBeenCalledWith({
+      hashKey: orgId,
+      sortKey: expect.any(String),
+      record: {
+        CreatedAtHour: expectedHour,
+        MetricsSavedDate: "null",
+      },
     });
     expect(response).toHaveBeenCalledWith(500, "This is my error");
   });

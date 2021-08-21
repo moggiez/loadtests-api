@@ -1,6 +1,6 @@
 const uuid = require("uuid");
-const { Table } = require("moggies-db");
-jest.mock("moggies-db");
+const { Table } = require("@moggiez/moggies-db");
+jest.mock("@moggiez/moggies-db");
 
 const mockAWSLib = () => {
   const mockGet = jest.fn();

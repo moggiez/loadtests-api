@@ -28,7 +28,7 @@ const tableConfig = {
   },
 };
 
-const DEBUG = true;
+const DEBUG = false;
 
 exports.handler = async function (event, context, callback) {
   const table = new db.Table({ config: tableConfig, AWS: AWS });
