@@ -30,6 +30,8 @@ class InternalHandler {
         sortKey: event.parameters.loadtestId,
         updatedFields: event.parameters.updatedFields,
       });
+    } else {
+      throw Error("Not supported action.");
     }
   };
 }
