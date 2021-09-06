@@ -14,30 +14,57 @@ class InternalHandler {
   }
 
   handle = async (event) => {
-    if (event.action === "getLoadtestsInPastHour") {
-      const loadtestsInPastHour = await this.table.query({
-        indexName: "CreatedAtHourIndex",
-        hashKey: event.parameters.hourDateString,
-      });
-      const data =
-        "Items" in loadtestsInPastHour
-          ? loadtestsInPastHour.Items
-          : [loadtestsInPastHour.Item];
-      return data;
-    } else if (event.action === "setLoadtestMetricsSaved") {
-      return await this.table.update({
-        hashKey: event.parameters.organisationId,
-        sortKey: event.parameters.loadtestId,
-        updatedFields: event.parameters.updatedFields,
-      });
-    } else if (event.action === "getLoadtest") {
-      return await this.table.get({
-        hashKey: event.parameters.organisationId,
-        sortKey: event.parameters.loadtestId,
-      });
-    } else {
+    const actionMethod = this[event.action];
+    if (!actionMethod) {
       throw Error("Not supported action.");
     }
+    const actionParameters = event.parameters;
+
+    return actionMethod(actionParameters);
+  };
+
+  getLoadtestsInPastHour = async ({ hourDateString }) => {
+    const loadtestsInPastHour = await this.table.query({
+      indexName: "CreatedAtHourIndex",
+      hashKey: hourDateString,
+    });
+    const data =
+      "Items" in loadtestsInPastHour
+        ? loadtestsInPastHour.Items
+        : [loadtestsInPastHour.Item];
+    return data;
+  };
+
+  setLoadtestMetricsSaved = async ({
+    organisationId,
+    loadtestId,
+    updatedFields,
+  }) => {
+    return await this.table.update({
+      hashKey: organisationId,
+      sortKey: loadtestId,
+      updatedFields: updatedFields,
+    });
+  };
+
+  getLoadtest = async ({ organisationId, loadtestId }) => {
+    const response = await this.table.get({
+      hashKey: organisationId,
+      sortKey: loadtestId,
+    });
+    if ("Item" in response) {
+      return response.Item;
+    } else {
+      return null;
+    }
+  };
+
+  updateLoadtest = async ({ organisationId, loadtestId, updatedFields }) => {
+    return await this.table.update({
+      hashKey: organisationId,
+      sortKey: loadtestId,
+      updatedFields: updatedFields,
+    });
   };
 }
 
